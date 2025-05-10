@@ -1,0 +1,10 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // TEMPORARY: Wide open rules for testing only - DO NOT USE IN PRODUCTION
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+} 
