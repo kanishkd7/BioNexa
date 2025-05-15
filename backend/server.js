@@ -4,6 +4,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const morgan = require('morgan');
 const admin = require('firebase-admin');
+const path = require('path');
 const appointmentsRouter = require('./routes/appointments');
 const doctorsRouter = require('./routes/doctors');
 const hmsRouter = require('./routes/hms');
@@ -31,7 +32,7 @@ const app = express();
 
 // Configure CORS
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: process.env.NODE_ENV === 'production' ? true : 'http://localhost:3000',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin'],
@@ -60,6 +61,20 @@ app.use('/api/video', videoRouter);
 app.get('/api/test', (req, res) => {
   res.json({ success: true, message: 'Server is running' });
 });
+
+// Serve static files from the React frontend app in production
+if (process.env.NODE_ENV === 'production') {
+  // Serve any static files
+  app.use(express.static(path.join(__dirname, '../build')));
+  
+  // Handle React routing, return all requests to React app
+  app.get('*', function(req, res) {
+    // Skip API routes
+    if (!req.path.startsWith('/api/')) {
+      res.sendFile(path.join(__dirname, '../build', 'index.html'));
+    }
+  });
+}
 
 // Database connection
 mongoose.connect(process.env.MONGODB_URI)
